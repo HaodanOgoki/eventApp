@@ -87,6 +87,7 @@ const ContentfulDataScreen = ({ navigation }) => {
             imageUrl: item.fields.header.fields.file.url,   
             dateTime: item.fields.dateTime,
             map: item.fields.map,
+            price: item.fields.price,
             imageUrl2: item.fields.organizerIcon.fields.file.url,          
           })
         }>
@@ -317,7 +318,6 @@ const styles = StyleSheet.create({
     // height: 150,
     width: 150,
     marginRight:10,
-    marginBottom: 20,
     borderRadius: 15,
     alignItems: 'center',
     overflow: "hidden",

@@ -1,10 +1,15 @@
-import React from 'react';
+import React, { useState }  from 'react';
 import { View, Text, Image, StyleSheet, Button, RefreshControl, ScrollView, SafeAreaView, TouchableOpacity } from 'react-native';
 import MapView, { PROVIDER_GOOGLE } from 'react-native-maps';
 
 const PostDetailScreen = ({ route, navigation }) => {
   const { title, location, favorite, description, category, organizer, imageUrl, dateTime, imageUrl2, map, price } = route.params;
   const [refreshing, setRefreshing] = React.useState(false);
+  const [isFavorite, setIsFavorite] = useState(false);
+
+  const toggleFavorite = () => {
+    setIsFavorite(prevState => !prevState);
+  }
 
   const onRefresh = React.useCallback(() => {
     setRefreshing(true);
@@ -16,6 +21,12 @@ const PostDetailScreen = ({ route, navigation }) => {
 
   return (
     <SafeAreaView style={styles.container}>
+      <View style={styles.buttonContainer}>
+        <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+          <Image style={styles.backIcon} source={require('../../assets/tabicon/back.png')}/>
+          <Text style={styles.backButtonText}>Back</Text>
+        </TouchableOpacity>
+      </View>
       <ScrollView
         contentContainerStyle={styles.scrollView}
         refreshControl={
@@ -23,6 +34,10 @@ const PostDetailScreen = ({ route, navigation }) => {
         }>
         <View style={styles.container}>
           <Image style={styles.featuredImage} source={{ uri: `https:${ imageUrl }` }} />
+         
+          <TouchableOpacity style={styles.favIconContainer} onPress={toggleFavorite}>
+            <Image style={styles.favoriteIcon} source={isFavorite ? require('../../assets/tabicon/activeheart.png') : require('../../assets/tabicon/heart.png')} />
+          </TouchableOpacity>
           
           <View style={styles.textContainer}>
             <Text style={styles.title}>{title}</Text>
@@ -57,24 +72,38 @@ const PostDetailScreen = ({ route, navigation }) => {
 
             <View style={styles.dateTimeContainer}>
               <Text style={styles.subTitle}>Date & Time</Text>
-              <Text style={styles.description}>{dateTime}</Text>
-              
+              <Text style={styles.description}>{dateTime}</Text>           
             </View>
 
-            <View style={styles.priceContainer}>
+            {/* <View style={styles.priceContainer}>
               <Text style={styles.subTitle}>Event Price</Text>
               <Text style={styles.description}>$ {price}</Text>
-            </View>
+            </View> */}
 
-          </View>
-
-          <View style={styles.buttonContainer}>
-            <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-              <Text style={styles.backButtonText}>Back</Text>
-            </TouchableOpacity>
-          </View>
+          </View>       
         </View>
       </ScrollView>
+      <View style={styles.priceContainer}>
+        <View>
+          <Text style={styles.description}>Total Price</Text>
+          <Text style={styles.priceText}>{price} / Person</Text>
+        </View>
+        <TouchableOpacity 
+          style={styles.getTicketContainer} 
+          onPress={() =>
+            navigation.navigate('TicketDisplay', {
+              title: title,
+              imageUrl: imageUrl,
+              dateTime: dateTime,
+              location: location,
+              category:category,
+              description: description,
+              price: price,
+            })
+          }>
+          <Text style={styles.getTicketText}>Get a Ticket</Text>
+        </TouchableOpacity>
+      </View>
     </SafeAreaView>
     
 );
@@ -88,6 +117,7 @@ const styles = StyleSheet.create({
   },
   scrollView: {
     flexGrow: 1,
+    marginTop: -20
   },
   textContainer: {
     padding: 10,
@@ -162,29 +192,75 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   featuredImage: {
+    // position: 'relative',
     marginTop: 30,
     width: '100%',
     height: 200,
     marginBottom: 20,
     borderRadius: 10,
   },
+  favIconContainer: {
+    position: 'absolute',
+    right: 20,
+    top: 50,
+    borderColor: 'rgba(255, 255, 255, 0.8)', 
+    backgroundColor: 'rgba(255, 255, 255, 0.6)',
+    borderRadius: 10,
+    borderWidth: 1,
+    paddingHorizontal: 5,
+    paddingVertical: 5,
+  },
+  favoriteIcon: {
+    height: 25,
+    width: 25
+  },
   buttonContainer: {
-    alignItems: 'center',
     justifyContent: 'center'
   },
   backButton: {
+    flexDirection: 'row',
     paddingVertical: 8,
     paddingHorizontal: 16,
-    borderColor: '#5683b0',
-    borderWidth: 1,
-    borderRadius: 8,
+    // borderColor: '#5683b0',
+    // borderWidth: 1,
+    // borderRadius: 8,
     alignItems: 'center',
     width: '30%',
   },
+  backIcon: {
+    height: 15,
+    width: 15,
+    marginRight: 10
+  },
   backButtonText: {
     fontSize: 16,
-    color: '#5683b0',
+    color: '#333',
   },
+  priceContainer: {
+    marginBottom: 0,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 25,
+    paddingTop: 10
+  },
+  priceText: {
+    color: '#5683b0',
+    fontSize: 16,
+    fontWeight: 'bold'
+  },
+  getTicketContainer: {
+    borderColor: '#5683b0',
+    borderWidth: 1,
+    backgroundColor: '#5683b0',
+    borderRadius: 10,
+    paddingVertical: 5,
+    paddingHorizontal: 10
+  },
+  getTicketText: {
+    color: 'white',
+    fontWeight: 'bold'
+  }
 });
 
 export default PostDetailScreen;

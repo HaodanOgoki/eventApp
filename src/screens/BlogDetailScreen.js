@@ -15,6 +15,12 @@ const PostDetailScreen = ({ route, navigation }) => {
 
   return (
     <SafeAreaView style={styles.container}>
+      <View style={styles.buttonContainer}>
+        <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+          <Image style={styles.backIcon} source={require('../../assets/tabicon/back.png')}/>
+          <Text style={styles.backButtonText}>Back</Text>
+        </TouchableOpacity>
+      </View>
       <ScrollView
         contentContainerStyle={styles.scrollView}
         refreshControl={
@@ -28,13 +34,7 @@ const PostDetailScreen = ({ route, navigation }) => {
             <Text style={styles.description}>{description}</Text>
           </View>
           <View style={styles.introductionContainer}>
-            <Text>{introduction}</Text>
-          </View>
-
-          <View style={styles.buttonContainer}>
-            <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-              <Text style={styles.backButtonText}>Back</Text>
-            </TouchableOpacity>
+            {/* <Text>{introduction}</Text> */}
           </View>
         </View>
       </ScrollView>
@@ -51,6 +51,7 @@ const styles = StyleSheet.create({
   },
   scrollView: {
     flexGrow: 1,
+    marginTop: -20
   },
   textContainer: {
     padding: 10,
@@ -132,21 +133,26 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
   buttonContainer: {
-    alignItems: 'center',
     justifyContent: 'center'
   },
   backButton: {
+    flexDirection: 'row',
     paddingVertical: 8,
     paddingHorizontal: 16,
-    borderColor: '#5683b0',
-    borderWidth: 1,
-    borderRadius: 8,
+    // borderColor: '#5683b0',
+    // borderWidth: 1,
+    // borderRadius: 8,
     alignItems: 'center',
     width: '30%',
   },
+  backIcon: {
+    height: 15,
+    width: 15,
+    marginRight: 10
+  },
   backButtonText: {
     fontSize: 16,
-    color: '#5683b0',
+    color: '#333',
   },
 });
 

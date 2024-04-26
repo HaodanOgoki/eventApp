@@ -12,6 +12,7 @@ import appTabs from "../screens/OnBoarding";
 import PostDetailScreen from "../screens/PostDetailScreen";
 import TabBlogs from "../screens/TabBlogs";
 import BlogDetailScreen from "../screens/BlogDetailScreen";
+import TicketDisplayScreen from "../screens/TicketDisplay";
 
 const Stack = createStackNavigator();
 
@@ -38,6 +39,7 @@ function Navigation() {
       <Stack.Screen name="TabLive" component={TabLive} />
       <Stack.Screen name="TabBlogs" component={TabBlogs} />
       <Stack.Screen name="BlogDetailScreen" component={BlogDetailScreen} />
+      <Stack.Screen name="TicketDisplay" component={TicketDisplayScreen} />
     </Stack.Navigator>
     
   );
