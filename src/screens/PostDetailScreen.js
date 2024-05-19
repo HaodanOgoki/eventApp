@@ -1,9 +1,13 @@
-import React from 'react';
-import { View, Text, Image, StyleSheet, Button, RefreshControl, ScrollView, SafeAreaView, TouchableOpacity } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, Text, Image, StyleSheet, Button, RefreshControl, ScrollView, SafeAreaView, TouchableOpacity, Share, Modal } from 'react-native';
+import Clipboard from '@react-native-community/clipboard';
+import ShareSocial from 'react-share-social';
 
 const PostDetailScreen = ({ route, navigation }) => {
   const { title, location, favorite, description, organizer, dateTime, map, imageUrl, imageUrl2 } = route.params;
   const [refreshing, setRefreshing] = React.useState(false);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [shareUrl, setShareUrl] = useState(''); 
 
   const onRefresh = React.useCallback(() => {
     setRefreshing(true);
@@ -12,6 +16,61 @@ const PostDetailScreen = ({ route, navigation }) => {
     }, 2000);
   }, 
   []);
+
+  const eventShare = async() => {
+    const shareOptions = {
+      message: "Please join me with this fantastic event! Event Detail: www.google.com"
+    }
+
+    try{
+      const ShareResponse = await Share.share(shareOptions);
+    } catch (error) {
+      console.log('Error =>' , error);
+    }
+  };
+
+  const generateShareUrl = () => {
+    const generatedUrl = `${title}\n\n${description}`;
+
+    // const generatedUrl = `https://example.com/${title.replace(/\s/g, '-')}/details?id=123`;
+
+    setShareUrl(generatedUrl);
+  };
+
+  
+
+  const copyLink = () => {
+    Clipboard.setString(shareUrl);
+    alert('Link copied to clipboard!');
+    setModalVisible(false);
+  };
+
+  const shareToFacebook = async () => {
+    try {
+      await ShareSocial.shareToFacebook({
+        url: shareUrl,
+        caption: title,
+      });
+    } catch (error) {
+      alert(error.message);
+    }
+  };
+
+  const shareToTwitter = async () => {
+    try {
+      await ShareSocial.shareToTwitter({
+        url: shareUrl,
+        title: title,
+        message: content,
+      });
+    } catch (error) {
+      alert(error.message);
+    }
+  };
+
+  useEffect(() => {
+    generateShareUrl();
+  }, []);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -28,6 +87,11 @@ const PostDetailScreen = ({ route, navigation }) => {
         }>
         <View style={styles.container}>
           <Image style={styles.featuredImage} source={{ uri: `https:${ imageUrl }` }} />
+
+          <TouchableOpacity style={styles.shareContainer} onPress={eventShare}>
+            <Image style={styles.shareIcon} source={require('../../assets/tabicon/share.png')} />
+          </TouchableOpacity>
+
           <View style={styles.organizer}>
             <Image style={styles.organizerIcon} source={{ uri: `https:${ imageUrl2}`}} />
             <Text style={styles.organizerText}>{organizer}</Text>
@@ -36,7 +100,24 @@ const PostDetailScreen = ({ route, navigation }) => {
             <Text style={styles.title}>{title}</Text>
             <Text style={styles.description}>{description}</Text>           
           </View>
-          
+          {/* <Button title="Share" onPress={() => setModalVisible(true)} /> */}
+          <Modal
+            animationType="slide"
+            transparent={true}
+            visible={modalVisible}
+            onRequestClose={() => {
+              setModalVisible(false);
+            }}
+          >
+            <View style={styles.modalContainer}>
+              <Text>Share this event</Text>
+              <Text>If you like this event, please share it with your friends.</Text>
+              <Button title="Copy Link" onPress={copyLink} />
+              <Button title="Share on Facebook" onPress={shareToFacebook} />
+              <Button title="Share on Twitter" onPress={shareToTwitter} />
+              <Button title="Close" onPress={() => setModalVisible(false)} />
+            </View>
+          </Modal>
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -93,6 +174,21 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     borderRadius: 10,
   },
+  shareContainer: {
+    position: 'absolute',
+    right: 20,
+    top: 50,
+    borderColor: 'rgba(255, 255, 255, 0.8)', 
+    backgroundColor: 'rgba(255, 255, 255, 0.6)',
+    borderRadius: 10,
+    borderWidth: 1,
+    paddingHorizontal: 5,
+    paddingVertical: 5,
+  },
+  shareIcon: {
+    height: 25,
+    width: 25
+  },
   buttonContainer: {
     justifyContent: 'center'
   },
@@ -114,6 +210,17 @@ const styles = StyleSheet.create({
   backButtonText: {
     fontSize: 16,
     color: '#333',
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginVertical: 300,
+    marginHorizontal: 40,
+    borderRadius: 20,
+    borderColor: 'lightgray',
+    borderWidth: 1,
+    backgroundColor: 'white',
   },
 });
 

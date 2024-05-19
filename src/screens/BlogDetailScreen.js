@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, Image, StyleSheet, Button, RefreshControl, ScrollView, SafeAreaView, TouchableOpacity } from 'react-native';
+import { View, Text, Image, StyleSheet, Button, RefreshControl, ScrollView, SafeAreaView, Share, TouchableOpacity } from 'react-native';
 
 const PostDetailScreen = ({ route, navigation }) => {
   const { title, description, introduction, imageUrl, } = route.params;
@@ -12,6 +12,18 @@ const PostDetailScreen = ({ route, navigation }) => {
     }, 2000);
   }, 
   []);
+
+  const eventShare = async() => {
+    const shareOptions = {
+      message: "Please join me with this fantastic event! Event Detail: www.google.com"
+    }
+
+    try{
+      const ShareResponse = await Share.share(shareOptions);
+    } catch (error) {
+      console.log('Error =>' , error);
+    }
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -28,6 +40,10 @@ const PostDetailScreen = ({ route, navigation }) => {
         }>
         <View style={styles.container}>
           <Image style={styles.featuredImage} source={{ uri: `https:${ imageUrl }` }} />
+
+          <TouchableOpacity style={styles.shareContainer} onPress={eventShare}>
+            <Image style={styles.shareIcon} source={require('../../assets/tabicon/share.png')} />
+          </TouchableOpacity>
           
           <View style={styles.textContainer}>
             <Text style={styles.title}>{title}</Text>       
@@ -63,45 +79,6 @@ const styles = StyleSheet.create({
     color: '#333',
     textAlign: 'center'
   },
-  organizer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginVertical: 5
-  },
-  organizerText: {
-    fontSize: 15,
-    alignItems: 'center',
-    justifyContent: 'center',
-    color:'#333'
-  },
-  organizerIcon: {
-    height: 30,
-    width: 30,
-    borderRadius:15,
-    marginLeft: 5,
-    marginRight: 15
-  },
-  category: {
-    fontSize: 12,
-    textAlign: 'center',
-    marginTop: -30,
-    color: '#5683b0',
-    borderColor: '#5683b0',
-    borderWidth: 1,
-    borderRadius: 10,
-    padding: 5
-  },
-  categoryContainer: {
-    alignItems: 'flex-end',
-    marginTop: -5
-  },
-  dateTimeContainer: {
-    marginBottom: 15
-  },
-  dateTime: {
-    fontSize: 12,
-    color: '#333',
-  },
   subTitle: {
     fontSize: 18,
     fontWeight: 'bold',
@@ -113,17 +90,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     lineHeight: 24,
     color: '#333',
-  },
-  mapContainer: {
-    borderColor: '#5683b0',
-    borderWidth: 1,
-    height: 150,
-    width: '100%',
-    marginTop: 10,
-    overflow: 'hidden'
-  },
-  mapView: {
-    flex: 1,
   },
   featuredImage: {
     marginTop: 30,
@@ -153,6 +119,21 @@ const styles = StyleSheet.create({
   backButtonText: {
     fontSize: 16,
     color: '#333',
+  },
+  shareContainer: {
+    position: 'absolute',
+    right: 20,
+    top: 50,
+    borderColor: 'rgba(255, 255, 255, 0.8)', 
+    backgroundColor: 'rgba(255, 255, 255, 0.6)',
+    borderRadius: 10,
+    borderWidth: 1,
+    paddingHorizontal: 5,
+    paddingVertical: 5,
+  },
+  shareIcon: {
+    height: 25,
+    width: 25
   },
 });
 

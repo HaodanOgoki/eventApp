@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { Button, View, Text, StyleSheet, FlatList, Dimensions,ImageBackground, Image, TouchableOpacity, ScrollView, TextInput } from 'react-native';
+import { Button, View, Text, StyleSheet, FlatList, Dimensions,ImageBackground, Image, TouchableOpacity, RefreshControl, ScrollView, TextInput } from 'react-native';
 import { createClient } from 'contentful';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 // import backgroundImage from '../assets/bkg_pics/bkg.png';
@@ -19,18 +19,31 @@ const ContentfulDataScreen = ({ navigation }) => {
   const [blogs, setBlogs] = useState([]);
   const [livePosts, setLivePosts] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
+  const [refreshing, setRefreshing] = React.useState(false);
+
+  const onRefresh = React.useCallback(() => {
+    setRefreshing(true);
+    setTimeout(() => {
+      setRefreshing(false);
+    }, 2000);
+  }, 
+  []);
 
   const Header = () => (
     <ImageBackground source={require('../../assets/bkg_pics/banner_bkg.png')} style={styles.headerBackground} >
-    <View style={styles.headerContainer}>   
-      <Text style={styles.headerText}>Welcome!</Text>
-      {/* <TextInput
-        style={styles.searchBar}
-        placeholder="Search"
-        onChangeText={handleSearch}
-        value={searchQuery}
-      /> */}
-    </View>
+      <View style={styles.headerContainer}>   
+        <Text style={styles.headerText}>Welcome!</Text>
+        <TouchableOpacity onPress={() => navigation.navigate('LoginScreen')}>
+          <Text style={styles.loginButton}>Login</Text>
+        </TouchableOpacity>
+        {/* <TextInput
+          style={styles.searchBar}
+          placeholder="Search"
+          onChangeText={handleSearch}
+          value={searchQuery}
+        /> */}
+      </View>
+    
     </ImageBackground>
   );
 
@@ -226,7 +239,13 @@ const ContentfulDataScreen = ({ navigation }) => {
 
   return (
     <ImageBackground source={require('../../assets/bkg_pics/bkg.png')} style={styles.backgroundImage}>
-      <ScrollView contentContainerStyle={styles.containerStyle} showsVerticalScrollIndicator={false} nestedScrollEnabled={false}>
+      <ScrollView 
+        contentContainerStyle={styles.containerStyle} 
+        showsVerticalScrollIndicator={false} 
+        nestedScrollEnabled={false}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }>
         <Header handleSearch={handleSearch} searchQuery={searchQuery} />
         <View style={styles.container}>         
           {renderFeaturedEvents()}
@@ -254,7 +273,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     resizeMode: 'cover'
   },
-
   headerBackground: {
     width: '100%',
     // height: 200,
@@ -264,6 +282,11 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#5683b0',
     marginTop: 25
+  },
+  loginButton: {
+    fontSize: 15,
+    color: '#5683b0',
+    marginTop: 10,
   },
   searchBar: {
     width: '100%',

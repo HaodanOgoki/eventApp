@@ -12,15 +12,15 @@ const Contentful = createClient({
 
 const MainScreen = ({ navigation }) => {
   const [data, setData] = useState([]);
-//   const [refreshing, setRefreshing] = React.useState(false);
+  const [refreshing, setRefreshing] = React.useState(false);
 
-//   const onRefresh = React.useCallback(() => {
-//     setRefreshing(true);
-//     setTimeout(() => {
-//       setRefreshing(false);
-//     }, 2000);
-//   }, 
-//   []);
+  const onRefresh = React.useCallback(() => {
+    setRefreshing(true);
+    setTimeout(() => {
+      setRefreshing(false);
+    }, 2000);
+  }, 
+  []);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -74,6 +74,9 @@ const MainScreen = ({ navigation }) => {
         renderItem={renderItem}
         keyExtractor={item => item.sys.id}
         contentContainerStyle={{ paddingVertical: 20 }}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }
       />
     </View>
   );

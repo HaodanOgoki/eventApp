@@ -6,9 +6,10 @@ import Maps from "../screens/Maps";
 import Credits from "../screens/Credits";
 import Home from "../screens/Home";
 import TabFeaturedPosts from "../screens/TabFeaturedPosts"
-import TabSchedule from "../screens/TabSchedule";
+import TabCalendar from "../screens/TabCalendar";
 import TabLive from "../screens/TabLive";
 import TabBlogs from "../screens/TabBlogs"
+import TabAccount from "../screens/TabAccount";
 
 const Tab = AnimatedTabBarNavigator();
 
@@ -69,10 +70,10 @@ export default function App() {
           }}
         />
         <Tab.Screen
-          name="TabSchedule"
-          component={TabSchedule}
+          name="TabCalendar"
+          component={TabCalendar}
           options={{
-            tabBarLabel: "Schedule",
+            tabBarLabel: "Calendar",
             tabBarIcon: ({ focused, size }) => (
               <Image
                 source={require("../../assets/tabicon/schedule.png")}
@@ -89,6 +90,19 @@ export default function App() {
             tabBarIcon: ({ focused, size }) => (
               <Image
               source={require("../../assets/tabicon/live.png")}
+              style={{ height: 24, width: 24 }}
+              />
+            ),
+          }}
+        />
+        <Tab.Screen
+          name="TabAccount"
+          component={TabAccount}
+          options={{
+            tabBarLabel: "Account",
+            tabBarIcon: ({ focused, size }) => (
+              <Image
+              source={require("../../assets/tabicon/account.png")}
               style={{ height: 24, width: 24 }}
               />
             ),

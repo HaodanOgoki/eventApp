@@ -5,6 +5,8 @@ import { createClient } from 'contentful';
 
 const Stack = createNativeStackNavigator();
 
+
+
 const Contentful = createClient({
     space: 'f0ke2at73bdn',
     accessToken: 'QOqCqOf3sJfUBUuePTBPtoJyBi9PkJ74ztKw63xFav4',
@@ -12,15 +14,15 @@ const Contentful = createClient({
 
 const MainScreen = ({ navigation }) => {
   const [data, setData] = useState([]);
-//   const [refreshing, setRefreshing] = React.useState(false);
+  const [refreshing, setRefreshing] = React.useState(false);
 
-//   const onRefresh = React.useCallback(() => {
-//     setRefreshing(true);
-//     setTimeout(() => {
-//       setRefreshing(false);
-//     }, 2000);
-//   }, 
-//   []);
+  const onRefresh = React.useCallback(() => {
+    setRefreshing(true);
+    setTimeout(() => {
+      setRefreshing(false);
+    }, 2000);
+  }, 
+  []);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -69,13 +71,16 @@ const MainScreen = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      <Header />
+      <Header />    
       <FlatList
         data={data}
         renderItem={renderItem}
         keyExtractor={item => item.sys.id}
         contentContainerStyle={{ paddingVertical: 20 }}
-      />
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }
+      />     
     </View>
   );
 };

@@ -1,11 +1,23 @@
 import React, { useState }  from 'react';
-import { View, Text, Image, StyleSheet, Button, RefreshControl, ScrollView, SafeAreaView, TouchableOpacity } from 'react-native';
+import { View, Text, Image, StyleSheet, Button, RefreshControl, ScrollView, SafeAreaView, Share, TouchableOpacity } from 'react-native';
 import MapView, { PROVIDER_GOOGLE } from 'react-native-maps';
 
 const PostDetailScreen = ({ route, navigation }) => {
   const { title, location, favorite, description, category, organizer, imageUrl, dateTime, imageUrl2, map, price } = route.params;
   const [refreshing, setRefreshing] = React.useState(false);
   const [isFavorite, setIsFavorite] = useState(false);
+  const eventShare = async() => {
+    const shareOptions = {
+      message: "Please join me with this fantastic event! Event Detail: www.google.com"
+    }
+
+    try{
+      const ShareResponse = await Share.share(shareOptions);
+    } catch (error) {
+      console.log('Error =>' , error);
+    }
+  };
+
 
   const toggleFavorite = () => {
     setIsFavorite(prevState => !prevState);
@@ -37,6 +49,10 @@ const PostDetailScreen = ({ route, navigation }) => {
          
           <TouchableOpacity style={styles.favIconContainer} onPress={toggleFavorite}>
             <Image style={styles.favoriteIcon} source={isFavorite ? require('../../assets/tabicon/activeheart.png') : require('../../assets/tabicon/heart.png')} />
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.shareContainer} onPress={eventShare}>
+            <Image style={styles.shareIcon} source={require('../../assets/tabicon/share.png')} />
           </TouchableOpacity>
           
           <View style={styles.textContainer}>
@@ -86,7 +102,7 @@ const PostDetailScreen = ({ route, navigation }) => {
       <View style={styles.priceContainer}>
         <View>
           <Text style={styles.description}>Total Price</Text>
-          <Text style={styles.priceText}>{price} / Person</Text>
+          <Text style={styles.priceText}>$ {price} / Person</Text>
         </View>
         <TouchableOpacity 
           style={styles.getTicketContainer} 
@@ -201,7 +217,7 @@ const styles = StyleSheet.create({
   },
   favIconContainer: {
     position: 'absolute',
-    right: 20,
+    right: 60,
     top: 50,
     borderColor: 'rgba(255, 255, 255, 0.8)', 
     backgroundColor: 'rgba(255, 255, 255, 0.6)',
@@ -211,6 +227,21 @@ const styles = StyleSheet.create({
     paddingVertical: 5,
   },
   favoriteIcon: {
+    height: 25,
+    width: 25
+  },
+  shareContainer: {
+    position: 'absolute',
+    right: 20,
+    top: 50,
+    borderColor: 'rgba(255, 255, 255, 0.8)', 
+    backgroundColor: 'rgba(255, 255, 255, 0.6)',
+    borderRadius: 10,
+    borderWidth: 1,
+    paddingHorizontal: 5,
+    paddingVertical: 5,
+  },
+  shareIcon: {
     height: 25,
     width: 25
   },

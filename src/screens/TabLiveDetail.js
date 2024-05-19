@@ -1,8 +1,17 @@
 import React from 'react';
-import { View, Text, StyleSheet, Button } from 'react-native';
+import { View, Text, StyleSheet, RefreshControl, Button } from 'react-native';
 
 const TabLiveDetail = ({ route, navigation }) => {
   const { title, description, content } = route.params;
+  const [refreshing, setRefreshing] = React.useState(false);
+
+  const onRefresh = React.useCallback(() => {
+    setRefreshing(true);
+    setTimeout(() => {
+      setRefreshing(false);
+    }, 2000);
+  }, 
+  []);
 
   return (
     <View style={styles.container}>
