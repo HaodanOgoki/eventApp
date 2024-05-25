@@ -1,5 +1,6 @@
-import React, { useEffect, useState } from "react";
-import { View, Text, Image, TouchableOpacity, RefreshControl, FlatList, StyleSheet } from "react-native";
+import { View, Text, Image, StyleSheet, RefreshControl, SafeAreaView } from "react-native";
+import React, { useState, useEffect } from "react";
+import { Agenda } from "react-native-calendars";
 import { createClient } from "contentful";
 
 // Initialize Contentful client
@@ -8,9 +9,28 @@ const Contentful = createClient({
   accessToken: "QOqCqOf3sJfUBUuePTBPtoJyBi9PkJ74ztKw63xFav4",
 });
 
+const timeToString = (time) => {
+  const date = new Date(time);
+  return date.toISOString().split("T")[0];
+};
+function extractTime(dateTimeString) {
+  const timeWithOffset = dateTimeString.split("T")[1]; // Gets "08:30-05:00"
+  const timeOnly = timeWithOffset.split("-")[0]; // Gets "08:30"
+  return convertTo12Hour(timeOnly);
+}
+function convertTo12Hour(timeString) {
+  const [hour24, minute] = timeString.split(":");
+  const hourNumber = parseInt(hour24, 10);
+  const suffix = hourNumber >= 12 ? "PM" : "AM";
+  const hour12 = hourNumber % 12 || 12;
+
+  return `${hour12}:${minute} ${suffix}`;
+}
+
 export default function CalendarScreenAgenda() {
-  const [posts, setPosts] = useState([]);
-  const [refreshing, setRefreshing] = useState(false);
+  const [items, setItems] = useState({});
+  const [refreshing, setRefreshing] = React.useState(false);
+  const [isLoading, setIsLoading] = React.useState(true);
 
   const onRefresh = React.useCallback(() => {
     setRefreshing(true);
@@ -20,24 +40,37 @@ export default function CalendarScreenAgenda() {
   }, []);
 
   useEffect(() => {
-    const fetchPosts = async () => {
+    const fetchEvents = async () => {
       try {
         const response = await Contentful.getEntries({
           content_type: "featuredPosts",
-
         });
 
-        const sortedPosts = response.items.sort((a, b) => 
-          new Date(b.fields.dateTime) - new Date(a.fields.dateTime)
-        );
+        const fetchedItems = response.items.reduce((acc, item) => {
+          const dateStr = item.fields.dateTime.split("T")[0];
 
-        setPosts(sortedPosts);
+          if (!acc[dateStr]) {
+            acc[dateStr] = [];
+          }
+
+          acc[dateStr].push({
+            key: item.sys.id,
+            time: extractTime(item.fields.dateTime),
+            location: item.fields.location || "No Loaction",
+            name: item.fields.title || "Unnamed Event",
+          });
+
+          return acc;
+        }, {});
+
+        setItems(fetchedItems);
+        setIsLoading(false)
       } catch (error) {
-        console.error(error);
+        console.error("Error fetching events from Contentful:", error);
       }
     };
 
-    fetchPosts();
+    fetchEvents();
   }, []);
 
   const Header = () => (
@@ -46,45 +79,46 @@ export default function CalendarScreenAgenda() {
     </View>
   );
 
-  const renderItem = ({ item }) => (
-    <TouchableOpacity
-      style={styles.itemContainer}
-      // onPress={() =>
-      //   navigation.navigate('EventDetailScreen', {
-      //     title: item.fields.title,
-      //     dateTime: item.fields.dateTime,
-      //     description: item.fields.description,
-      //     imageUrl: item.fields.image.fields.file.url,
-      //   })
-      // }
-      >
-      <View style={styles.postContainer}>
-        {/* <View style={styles.imageBox}>
-        <Image style={styles.featuredImage} source= {{uri: `https:${ item.fields.header.fields.file.url }`}}/>
-        </View> */}
-        <View style={styles.textContainer}>
-          <Text style={styles.title}>{item.fields.title}</Text>
-          <Text style={styles.dateTime}>{item.fields.dateTime}</Text>
-        </View>
+  const renderEmptyData = () => {
+    return (
+      <View style={styles.emptyContainer}>
+        <Text style={styles.emptyText}>No events today.</Text>
       </View>
-    </TouchableOpacity>
-  );
+    );
+  };
+
+  const renderItem = (item) => {
+    return (
+      <View key={item.key} style={styles.itemContainer}>
+        <Text style={styles.itemTitle}>{item.name}</Text>
+        <Text style={styles.itemTime}>{item.time}</Text>
+        <Text style={styles.itemLocation}>{item.location}</Text>
+      </View>
+    );
+  };
 
   return (
     
 
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <Header />
-      <FlatList
-        data={posts}
+      {isLoading ? (
+        <View style={styles.loadingContainer}>
+          <Image style={styles.loadingIcon} source={require('../../assets/tabicon/loading.gif')}  />
+          <Text>Loading...</Text>
+        </View>
+      ):(
+      <Agenda
+        items={items}
+        selected={timeToString(new Date())}
         renderItem={renderItem}
-        keyExtractor={(item) => item.sys.id}
-        contentContainerStyle={{ paddingVertical: 20 }}
+        renderEmptyData={renderEmptyData}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
-      />
-    </View>
+      ></Agenda>
+      )}
+    </SafeAreaView>
   );
 }
 
@@ -96,6 +130,17 @@ const styles = StyleSheet.create({
     alignContent: 'center',
     marginTop: 30,
   },
+  loadingContainer: {
+    flex: 1,
+    backgroundColor: '#f9f9f9',
+    padding: 10,
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
+  loadingIcon: {
+    height: 50,
+    width: 50
+  },
   headerContainer: {
     width: '100%',
     alignItems: 'center',
@@ -105,13 +150,6 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: 'bold',
     color: '#5683b0',
-  },
-  postContainer: {
-    width: '100%',
-    borderRadius: 15,
-    overflow: 'hidden',
-    borderColor: '#b6b6b8',
-    borderWidth: 1,
   },
   imageBox: {
     height: 170,
@@ -129,22 +167,33 @@ const styles = StyleSheet.create({
     borderBottomRightRadius: 15,
   },
   itemContainer: {
+    height: 125,
+    flex: 1,
+    justifyContent: "center",
+    backgroundColor: "white",
+    margin: 5,
     paddingHorizontal: 15,
-    paddingVertical: 10,
+    borderRadius: 10,
   },
-  title: {
+  itemTime: {
+    fontSize: 20,
+  },
+  itemTitle: {
     fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
-  date: {
-    fontSize: 16,
-    color: '#666',
-    marginTop: 5,
+  itemLocation: {
+    paddingTop: 5,
+    color: "#808080",
   },
-  featuredImage: {
-    width: '100%',
-    height: 170,
-    marginBottom: 10,
-    resizeMode: 'cover',
+  emptyContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 20,
+  },
+  emptyText: {
+    fontSize: 18,
+    color: "#888888",
   },
 });

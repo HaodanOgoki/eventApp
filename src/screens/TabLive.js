@@ -1,11 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, Image, StyleSheet, FlatList, TouchableOpacity, RefreshControl, ScrollView, SafeAreaView } from 'react-native';
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createClient } from 'contentful';
-
-const Stack = createNativeStackNavigator();
-
-
 
 const Contentful = createClient({
     space: 'f0ke2at73bdn',
@@ -15,6 +10,7 @@ const Contentful = createClient({
 const MainScreen = ({ navigation }) => {
   const [data, setData] = useState([]);
   const [refreshing, setRefreshing] = React.useState(false);
+  const [isLoading, setIsLoading] = React.useState(true);
 
   const onRefresh = React.useCallback(() => {
     setRefreshing(true);
@@ -29,6 +25,7 @@ const MainScreen = ({ navigation }) => {
       try {
         const response = await Contentful.getEntries({ content_type: 'liveFeed' });
         setData(response.items);
+        setIsLoading(false)
       } catch (error) {
         console.error('Error fetching data from Contentful:', error);
       }
@@ -51,6 +48,7 @@ const MainScreen = ({ navigation }) => {
       style={styles.itemContainer}
       onPress={() =>
         navigation.navigate('PostDetailScreen', {
+          id: item.sys.id,
           title: item.fields.title,
           description: item.fields.description,
           organizer: item.fields.organizer,
@@ -65,6 +63,7 @@ const MainScreen = ({ navigation }) => {
         <View style={styles.textContainer}>
           <Text style={styles.title}>{item.fields.title}</Text>
         </View>
+        {/* <Text>{item.sys.id}</Text> */}
        </View>
     </TouchableOpacity>
   );
@@ -72,6 +71,12 @@ const MainScreen = ({ navigation }) => {
   return (
     <View style={styles.container}>
       <Header />    
+      {isLoading ? (
+        <View style={styles.loadingContainer}>
+          <Image style={styles.loadingIcon} source={require('../../assets/tabicon/loading.gif')}  />
+          <Text>Loading...</Text>
+        </View>
+      ):(
       <FlatList
         data={data}
         renderItem={renderItem}
@@ -80,7 +85,8 @@ const MainScreen = ({ navigation }) => {
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
-      />     
+      />  
+      )}   
     </View>
   );
 };
@@ -92,6 +98,17 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignContent: 'center',
     marginTop: 30
+  },
+  loadingContainer: {
+    flex: 1,
+    backgroundColor: '#f9f9f9',
+    padding: 10,
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
+  loadingIcon: {
+    height: 50,
+    width: 50
   },
   headerBackground: {
     width: '100%', 

@@ -13,6 +13,7 @@ const Contentful = createClient({
 const MainScreen = ({ navigation }) => {
   const [data, setData] = useState([]);
   const [refreshing, setRefreshing] = React.useState(false);
+  const [isLoading, setIsLoading] = React.useState(true);
 
   const onRefresh = React.useCallback(() => {
     setRefreshing(true);
@@ -27,6 +28,7 @@ const MainScreen = ({ navigation }) => {
       try {
         const response = await Contentful.getEntries({ content_type: 'featuredPosts' });
         setData(response.items);
+        setIsLoading(false)
       } catch (error) {
         console.error('Error fetching data from Contentful:', error);
       }
@@ -76,6 +78,12 @@ const MainScreen = ({ navigation }) => {
   return (
     <View style={styles.container}>
       <Header />
+      {isLoading ? (
+        <View style={styles.loadingContainer}>
+          <Image style={styles.loadingIcon} source={require('../../assets/tabicon/loading.gif')}  />
+          <Text>Loading...</Text>
+        </View>
+      ):(
       <FlatList
         data={data}
         renderItem={renderItem}
@@ -85,6 +93,7 @@ const MainScreen = ({ navigation }) => {
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
       />
+      )}
     </View>
   );
 };
@@ -96,6 +105,17 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignContent: 'center',
     marginTop: 30
+  },
+  loadingContainer: {
+    flex: 1,
+    backgroundColor: '#f9f9f9',
+    padding: 10,
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
+  loadingIcon: {
+    height: 50,
+    width: 50
   },
   headerBackground: {
     width: '100%', 

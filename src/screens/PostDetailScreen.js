@@ -1,13 +1,18 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, Image, StyleSheet, Button, RefreshControl, ScrollView, SafeAreaView, TouchableOpacity, Share, Modal } from 'react-native';
+import { View, Text, TextInput, Image, StyleSheet, Button, RefreshControl, ScrollView, SafeAreaView, TouchableOpacity, Share, Modal } from 'react-native';
 import Clipboard from '@react-native-community/clipboard';
 import ShareSocial from 'react-share-social';
+import { getDatabase, ref, push, onValue } from "@firebase/database";
+import { FirebaseAuth } from '../components/firebaseConfig';
 
 const PostDetailScreen = ({ route, navigation }) => {
-  const { title, location, favorite, description, organizer, dateTime, map, imageUrl, imageUrl2 } = route.params;
+  console.log(route.params);
+  const { id, title, location, favorite, description, organizer, dateTime, map, imageUrl, imageUrl2 } = route.params;
   const [refreshing, setRefreshing] = React.useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [shareUrl, setShareUrl] = useState(''); 
+  const [userComment, setUserComment] = useState("");
+  const [comments, setComments] = useState([]);
 
   const onRefresh = React.useCallback(() => {
     setRefreshing(true);
@@ -69,8 +74,42 @@ const PostDetailScreen = ({ route, navigation }) => {
   };
 
   useEffect(() => {
-    generateShareUrl();
+    // generateShareUrl();
+
+    const db = getDatabase();
+    const commentsRef = ref(db, "/comments");
+    
+    const unsubscribe = onValue(commentsRef, (snapshot) => {
+      const data = snapshot.val();
+      const loadedComments = [];
+      for(let key in data) {
+        if(data[key].eventId === id) { // Check if the comment is related to this event only
+          loadedComments.push({id: key, ...data[key]});
+        }
+      }
+      setComments(loadedComments.reverse());
+    });
+    
+    return () => unsubscribe();
+
   }, []);
+
+  const handleComment = () => {
+    const db = getDatabase();
+    const commentsRef = ref(db, "comments/");
+    const user = FirebaseAuth.currentUser;
+    
+    // Adding a new comment to Firebase.
+    push(commentsRef, {
+      eventId: id,
+      text: userComment,
+      timestamp: Date.now(),
+      userId: user.uid,
+      userName: user.displayName
+    });
+    
+    setUserComment("");
+  }
 
   return (
     <SafeAreaView style={styles.container}>
@@ -100,6 +139,38 @@ const PostDetailScreen = ({ route, navigation }) => {
             <Text style={styles.title}>{title}</Text>
             <Text style={styles.description}>{description}</Text>           
           </View>
+
+          {/* Comment input */}
+          <View style={styles.inputContainer}>
+            <View style={styles.commentInputContainer}>
+              <TextInput
+                  value={userComment}
+                  onChangeText={setUserComment}
+                  placeholder="Write a comment here"
+              />          
+            </View>
+            <TouchableOpacity style={styles.sendCommentContainer} onPress={handleComment}>
+                <Text style={styles.submitButtonText} >Submit Comment</Text>
+            </TouchableOpacity>
+          </View>
+
+          {/* Show user comments */}
+          <View>
+            <Text style={styles.commentTitle}>Comments</Text>
+            {comments.map((comment, index) => (
+                <View style={styles.commentContainer} key={index}>
+                  <Image style={styles.organizerIcon} source={{ uri: `https:${ imageUrl2}`}} />
+                  {/* the imageurl need to be updated to the user profile picture */}
+                  <View style={styles.userCommentInfoContainer}>    
+                    <Text>User Name</Text>
+                    {/* <Text>By: {comment.userName}</Text> */}
+                    <Text style={styles.commentText}>{comment.text}</Text>                   
+                    
+                  </View>
+                </View>
+            ))}
+          </View>
+
           {/* <Button title="Share" onPress={() => setModalVisible(true)} /> */}
           <Modal
             animationType="slide"
@@ -210,6 +281,55 @@ const styles = StyleSheet.create({
   backButtonText: {
     fontSize: 16,
     color: '#333',
+  },
+  inputContainer: {
+    alignItems: 'center'
+  },
+  commentInputContainer: {
+    height: 100,
+    width: '95%',
+    borderColor: 'gray',
+    borderWidth: 1,
+    marginVertical: 5,
+    backgroundColor: '#f1f1f1',
+    borderRadius: 10,
+    paddingHorizontal: 10,
+    paddingVertical: 10
+  },
+  sendCommentContainer: {
+    width: '50%',
+    marginVertical: 10,
+    paddingVertical: 8, 
+    paddingHorizontal: 15, 
+    borderRadius: 10,
+    backgroundColor: '#fff', 
+    borderWidth: 1, 
+    borderColor: '#5683b0',
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
+  submitButtonText: {
+    color: '#5683b0', 
+    fontSize: 15,
+    fontWeight: 'bold', 
+  },
+  commentTitle: {
+    marginLeft: 10,
+    marginTop: 20,
+    color: '#5683b0', 
+    fontSize: 20,
+    fontWeight: 'bold', 
+  },
+  commentContainer: {
+    width: '90%',
+    paddingVertical: 10,
+    marginTop: 10,
+    flexDirection: 'row',
+    paddingRight: 10
+  },
+  commentText: {
+    color: '#333',
+    fontSize: 16,
   },
   modalContainer: {
     flex: 1,

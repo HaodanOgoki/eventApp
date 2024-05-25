@@ -20,6 +20,7 @@ const ContentfulDataScreen = ({ navigation }) => {
   const [livePosts, setLivePosts] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [refreshing, setRefreshing] = React.useState(false);
+  const [isLoading, setIsLoading] = React.useState(true);
 
   const onRefresh = React.useCallback(() => {
     setRefreshing(true);
@@ -29,6 +30,7 @@ const ContentfulDataScreen = ({ navigation }) => {
   }, 
   []);
 
+  // Header component including the welcoming text and the user login link
   const Header = () => (
     <ImageBackground source={require('../../assets/bkg_pics/banner_bkg.png')} style={styles.headerBackground} >
       <View style={styles.headerContainer}>   
@@ -36,7 +38,8 @@ const ContentfulDataScreen = ({ navigation }) => {
         <TouchableOpacity onPress={() => navigation.navigate('LoginScreen')}>
           <Text style={styles.loginButton}>Login</Text>
         </TouchableOpacity>
-        {/* <TextInput
+        {/* Potential search function
+        <TextInput
           style={styles.searchBar}
           placeholder="Search"
           onChangeText={handleSearch}
@@ -47,6 +50,7 @@ const ContentfulDataScreen = ({ navigation }) => {
     </ImageBackground>
   );
 
+  // Fetch data from Contentful
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -61,30 +65,52 @@ const ContentfulDataScreen = ({ navigation }) => {
 
       } catch (error) {
         console.error('Error fetching data from Contentful:', error);
+      } finally {
+        setIsLoading(false)
       }
     };
 
     fetchData();
   }, []);
 
+  // For future Potential search function
   const handleSearch = useCallback((text) => {
     setSearchQuery(text);
    }, []);
 
-  const filteredFeaturedEvents = featuredEvents.filter(item =>
-    item.fields.title.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  // const filteredFeaturedEvents = featuredEvents.filter(item =>
+  //   item.fields.title.toLowerCase().includes(searchQuery.toLowerCase())
+  // );
 
-  const filteredBlogs = blogs.filter(item =>
-    item.fields.title.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  // const filteredBlogs = blogs.filter(item =>
+  //   item.fields.title.toLowerCase().includes(searchQuery.toLowerCase())
+  // );
 
-  const filteredLivePosts = livePosts.filter(item =>
-    item.fields.title.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  // const filteredLivePosts = livePosts.filter(item =>
+  //   item.fields.title.toLowerCase().includes(searchQuery.toLowerCase())
+  // );
 
-
+  // Featured Events Component on Home page
   function renderFeaturedEvents(){
+
+    const timeToString = (time) => {
+      const date = new Date(time);
+      return date.toLocaleDateString('en-US', { month: 'long', day: 'numeric' });
+  };
+    
+    function extractTime(dateTimeString) {
+      const timeWithOffset = dateTimeString.split("T")[1]; // Gets "08:30-05:00"
+      const timeOnly = timeWithOffset.split("-")[0]; // Gets "08:30"
+      return convertTo12Hour(timeOnly);
+    }
+    
+    function convertTo12Hour(timeString) {
+      const [hour24, minute] = timeString.split(":");
+      const date = new Date();
+      date.setHours(hour24);
+      date.setMinutes(minute);
+      return date.toLocaleTimeString('en-US', { hour: 'numeric', hour12: true }).toUpperCase();
+  }
 
     const renderItemFeatured = ({ item }) => (
       <TouchableOpacity
@@ -113,7 +139,7 @@ const ContentfulDataScreen = ({ navigation }) => {
           </View>
           <View style={styles.postSubContainer}>
             <Image style={styles.postIcon} source= {require('../../assets/tabicon/calendarIcon.png')}/>
-            <Text>{item.fields.dateTime}</Text>
+            <Text>{timeToString(item.fields.dateTime)}{', '}{extractTime(item.fields.dateTime)}</Text>
           </View>
           <View style={styles.postSubContainer}>
             <Image style={styles.postIcon} source= {require('../../assets/tabicon/location.png')}/>
@@ -143,6 +169,7 @@ const ContentfulDataScreen = ({ navigation }) => {
 
   }
 
+  // Blogs Component on Home page
   function renderBlogs() {
     const renderItemBlogs = ({ item }) => (
       <TouchableOpacity
@@ -189,7 +216,7 @@ const ContentfulDataScreen = ({ navigation }) => {
     );
   }
   
-
+  // Live Component on Home page
   function renderLive(){
 
     const renderItemLive = ({ item }) => (
@@ -235,8 +262,6 @@ const ContentfulDataScreen = ({ navigation }) => {
     );
   }
 
-  
-
   return (
     <ImageBackground source={require('../../assets/bkg_pics/bkg.png')} style={styles.backgroundImage}>
       <ScrollView 
@@ -247,16 +272,22 @@ const ContentfulDataScreen = ({ navigation }) => {
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }>
         <Header handleSearch={handleSearch} searchQuery={searchQuery} />
+        {isLoading ? (
+          <View style={styles.loadingContainer}>
+            <Image style={styles.loadingIcon} source={require('../../assets/tabicon/loading.gif')}  />
+            <Text>Loading...</Text>
+          </View>
+        ):(
         <View style={styles.container}>         
           {renderFeaturedEvents()}
           {renderBlogs()}
           {renderLive()}
         </View>
+        )}
       </ScrollView>
     </ImageBackground>
   );
 };
-
 
 const styles = StyleSheet.create({
   container: {
@@ -265,6 +296,17 @@ const styles = StyleSheet.create({
     alignContent: 'center',
     paddingHorizontal: 15,
     // backgroundColor: 'blue'
+  },
+  loadingContainer: {
+    
+    backgroundColor: '#f9f9f9',
+    padding: 10,
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
+  loadingIcon: {
+    height: 50,
+    width: 50
   },
   headerContainer: {
     width: '100%', 

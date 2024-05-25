@@ -1,9 +1,10 @@
-import React from 'react';
-import { View, Text, Image, StyleSheet, Button, RefreshControl, ScrollView, SafeAreaView, Share, TouchableOpacity } from 'react-native';
+import React, { useEffect } from 'react';
+import { View, Text, Image, StyleSheet, RefreshControl, ScrollView, SafeAreaView, Share, TouchableOpacity } from 'react-native';
 
 const PostDetailScreen = ({ route, navigation }) => {
-  const { title, description, introduction, imageUrl, } = route.params;
+  const { title, description, introduction, imageUrl} = route.params;
   const [refreshing, setRefreshing] = React.useState(false);
+  const [isLoading, setIsLoading] = React.useState(true); 
 
   const onRefresh = React.useCallback(() => {
     setRefreshing(true);
@@ -13,6 +14,7 @@ const PostDetailScreen = ({ route, navigation }) => {
   }, 
   []);
 
+  // Share function to share the page
   const eventShare = async() => {
     const shareOptions = {
       message: "Please join me with this fantastic event! Event Detail: www.google.com"
@@ -25,6 +27,13 @@ const PostDetailScreen = ({ route, navigation }) => {
     }
   };
 
+  useEffect(() => {
+    // to check if the data is successfully retrieved
+    if (title && description && imageUrl) {
+       setIsLoading(false);
+    }
+  }, [title, description, imageUrl]); 
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.buttonContainer}>
@@ -33,6 +42,12 @@ const PostDetailScreen = ({ route, navigation }) => {
           <Text style={styles.backButtonText}>Back</Text>
         </TouchableOpacity>
       </View>
+      {isLoading ? (
+        <View style={styles.loadingContainer}>
+          <Image style={styles.loadingIcon} source={require('../../assets/tabicon/loading.gif')}  />
+          <Text>Loading...</Text>
+        </View>
+      ):(
       <ScrollView
         contentContainerStyle={styles.scrollView}
         refreshControl={
@@ -54,6 +69,7 @@ const PostDetailScreen = ({ route, navigation }) => {
           </View>
         </View>
       </ScrollView>
+      )}
     </SafeAreaView>
     
 );
@@ -64,6 +80,17 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#f9f9f9',
     padding: 10
+  },
+  loadingContainer: {
+    flex: 1,
+    backgroundColor: '#f9f9f9',
+    padding: 10,
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
+  loadingIcon: {
+    height: 50,
+    width: 50
   },
   scrollView: {
     flexGrow: 1,

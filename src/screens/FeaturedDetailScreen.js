@@ -18,6 +18,24 @@ const PostDetailScreen = ({ route, navigation }) => {
     }
   };
 
+    const timeToString = (time) => {
+      const date = new Date(time);
+      return date.toLocaleDateString('en-US', { month: 'long', day: 'numeric' });
+  };
+    
+    function extractTime(dateTimeString) {
+      const timeWithOffset = dateTimeString.split("T")[1]; // Gets "08:30-05:00"
+      const timeOnly = timeWithOffset.split("-")[0]; // Gets "08:30"
+      return convertTo12Hour(timeOnly);
+    }
+    
+    function convertTo12Hour(timeString) {
+      const [hour24, minute] = timeString.split(":");
+      const date = new Date();
+      date.setHours(hour24);
+      date.setMinutes(minute);
+      return date.toLocaleTimeString('en-US', { hour: 'numeric', hour12: true }).toUpperCase();
+  }
 
   const toggleFavorite = () => {
     setIsFavorite(prevState => !prevState);
@@ -73,7 +91,7 @@ const PostDetailScreen = ({ route, navigation }) => {
               <Text style={styles.description}>{location}</Text>
               <View style={styles.mapContainer}>
                 <MapView 
-                  provider={PROVIDER_GOOGLE}
+                  provider={MapView.PROVIDER_GOOGLE}
                   style={styles.mapView}
                   region={{
                     latitude: map.lat,
@@ -88,7 +106,7 @@ const PostDetailScreen = ({ route, navigation }) => {
 
             <View style={styles.dateTimeContainer}>
               <Text style={styles.subTitle}>Date & Time</Text>
-              <Text style={styles.description}>{dateTime}</Text>           
+              <Text style={styles.description}>{timeToString(dateTime)}{', '}{extractTime(dateTime)}</Text>           
             </View>
 
             {/* <View style={styles.priceContainer}>

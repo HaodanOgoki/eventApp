@@ -1,7 +1,12 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, Alert, Image, SafeAreaView } from 'react-native';
 import { getAuth, createUserWithEmailAndPassword } from "firebase/auth";
+import { getFirestore, doc, setDoc } from "firebase/firestore";
 import { FirebaseAuth } from "../components/firebaseConfig";
+import { getStorage, ref, uploadString, getDownloadURL } from "firebase/storage";
+import * as ImagePicker from 'expo-image-picker';
+import { updateProfile } from "firebase/auth";
+
 // import { initializeAuth, getReactNativePersistence } from 'firebase/auth';
 // import ReactNativeAsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -13,16 +18,41 @@ const RegisterScreen = ({ navigation }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [userName, setUserName] = useState('');
-
-  const [loading, setLoading] = useState(false);
+  const [image, setImage] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   const auth = FirebaseAuth;
 
+  const db = getFirestore();
+
   const handleRegister = async () => {
-    setLoading(true);
+    setIsLoading(true);
     try {
-      const response = await createUserWithEmailAndPassword(auth, email, password, userName);
-      console.log(response);
+      const response = await createUserWithEmailAndPassword(auth, email, password);
+      const user = response.user; // get the user data from the response
+      const userId = response.user.uid;
+
+      // await updateProfile(user, {
+      //   displayName: userName,
+      // });
+
+      // if(image) { // Check if there's an image to upload
+      //   const storage = getStorage();
+      //   const imageRef = ref(storage, 'user_images/' + userId);
+      //   await uploadString(imageRef, image, 'data_url');
+      //   imageUrl = await getDownloadURL(imageRef);
+      // }
+
+      // // Save the user data into the firebase
+      // await setDoc(doc(db, "users", response.user.uid), {
+      //   userName: userName,
+      //   email: email,
+      //   imageUrl: imageUrl
+      // });
+
+      // console.log("Username: ", userName);
+      // // console.log(response);
+
       alert('Please check your email.');
       navigation.navigate('TabAccount');
     } catch (error) {
@@ -36,11 +66,38 @@ const RegisterScreen = ({ navigation }) => {
       if(msg.includes('Password should be at least')) {
         msg = 'Password should be at least 6 characters.'
       }
+      if(msg.includes("Property 'image' doesn't exsit")) {
+        msg = 'Please upload an image.'
+      }
       Alert.alert('Sign Up Error: ', msg);
       // Alert.alert('Sign Up: ', error.message);
+      
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
+  };
+
+  // changes in handleImagePickerResponse
+  const handleImagePickerResponse = (response) => {
+    if (!response.didCancel) {
+      setImage(response.uri);
+    }
+  };
+
+  const pickImage = async() => {
+    const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+
+    if (permissionResult.granted === false) {
+      alert("You are not permited to open the gallary.");
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      quality: 1,
+    });
+
+    handleImagePickerResponse(result);
   };
 
   return (
@@ -51,41 +108,52 @@ const RegisterScreen = ({ navigation }) => {
           <Text style={styles.backButtonText}>Back</Text>
         </TouchableOpacity>
       </View>
+      {isLoading ? (
+        <View style={styles.loadingContainer}>
+          <Image style={styles.loadingIcon} source={require('../../assets/tabicon/loading.gif')}  />
+          <Text>Loading...</Text>
+        </View>
+      ):(
         <View style={styles.loginContainer} >
-        <Image source={require('../../assets/tabicon/signUp.png')} style={styles.image}></Image>
-        <Text style={styles.title}>Sign Up</Text>
-        <TextInput
-            style={styles.input}
-            placeholder="User Name"
-            value={userName}
-            onChangeText={(text) => setUserName(text)}
-            autoCapitalize="none"
-        />
-        <TextInput
-            style={styles.input}
-            placeholder="Email Address"
-            value={email}
-            onChangeText={(text) => setEmail(text)}
-            keyboardType="email-address"
-            autoCapitalize="none"
-        />
-        <TextInput
-            style={styles.input}
-            placeholder="Password"
-            value={password}
-            onChangeText={(text) => setPassword(text)}
-            secureTextEntry={true}
-        />
-        <View  style={styles.registerButtonContainer}>
-          <TouchableOpacity style={styles.registerButtonStyle} onPress={handleRegister}>
-              <Text style={styles.registerButtonText}>Sign Up</Text>
+          <Image source={require('../../assets/tabicon/signUp.png')} style={styles.image}></Image>
+          <Text style={styles.title}>Sign Up</Text>
+          <TextInput
+              style={styles.input}
+              placeholder="User Name"
+              value={userName}
+              onChangeText={(text) => setUserName(text)}
+              autoCapitalize="none"
+          />
+          <TextInput
+              style={styles.input}
+              placeholder="Email Address"
+              value={email}
+              onChangeText={(text) => setEmail(text)}
+              keyboardType="email-address"
+              autoCapitalize="none"
+          />
+          <TextInput
+              style={styles.input}
+              placeholder="Password"
+              value={password}
+              onChangeText={(text) => setPassword(text)}
+              secureTextEntry={true}
+          />
+          <TouchableOpacity style={styles.uploadImageContainer} onPress={pickImage}>
+            <Image style={styles.imageIcon} source={require('../../assets/tabicon/image.png')} />
+            <Text style={styles.uploadImageText}>Upload Image</Text>
           </TouchableOpacity>
-          <View style={styles.signInContainer}>
-            <Text>Already have an account? </Text>
-            <TouchableOpacity onPress={() => navigation.navigate('LoginScreen')}><Text style={styles.signInText}>Sign In</Text></TouchableOpacity>
+          <View  style={styles.registerButtonContainer}>
+            <TouchableOpacity style={styles.registerButtonStyle} onPress={handleRegister}>
+              <Text style={styles.registerButtonText}>Sign Up</Text>
+            </TouchableOpacity>
+            <View style={styles.signInContainer}>
+              <Text>Already have an account? </Text>
+              <TouchableOpacity onPress={() => navigation.navigate('LoginScreen')}><Text style={styles.signInText}>Sign In</Text></TouchableOpacity>
+            </View>
           </View>
         </View>
-      </View>
+      )}
     </SafeAreaView>
   );
 };
@@ -144,6 +212,22 @@ const styles = StyleSheet.create({
       borderRadius: 5,
       marginBottom: 10,
       paddingHorizontal: 10,
+    },
+    uploadImageContainer: {
+      width: '80%',
+      justifyContent: 'center',
+      alignItems: 'center',
+      borderColor: '#ccc',
+      borderRadius: 5,
+      borderWidth: 1,
+      padding: 10
+    },
+    imageIcon: {
+      height: 50,
+      width: 50
+    },
+    uploadImageText: {
+      color: '#ccc'
     },
     registerButtonContainer: {
       marginVertical: 10,
