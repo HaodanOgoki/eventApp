@@ -21,6 +21,7 @@ import RegisterScreen from "../screens/RegisterScreen";
 import TabAccount from "../screens/TabAccount";
 // import InviteFriend from "../screens/AccountScreens/InviteFriend";
 import Notification from "../screens/AccountScreens/Notification";
+import NotificationDetailScreen from "../screens/AccountScreens/NotificationDetailScreen";
 import ChatRoom from "../screens/AccountScreens/ChatRoom"
 import PrivacyTerm from "../screens/AccountScreens/PrivacyTerm";
 import Feedback from "../screens/AccountScreens/Feedback";
@@ -74,6 +75,7 @@ function Navigation() {
       <Stack.Screen name="RegisterScreen" component={RegisterScreen} />
       <Stack.Screen name="TabAccount" component={TabAccount} />
       <Stack.Screen name="Notification" component={Notification} />
+      <Stack.Screen name="NotificationDetailScreen" component={NotificationDetailScreen} />
       {/* <Stack.Screen name="InviteFriend" component={InviteFriend} /> */}
       <Stack.Screen name="ChatRoom" component={ChatRoom} />
       <Stack.Screen name="PrivacyTerm" component={PrivacyTerm} />

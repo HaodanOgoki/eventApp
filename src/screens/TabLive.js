@@ -53,7 +53,8 @@ const MainScreen = ({ navigation }) => {
           description: item.fields.description,
           organizer: item.fields.organizer,
           imageUrl: item.fields.feature.fields.file.url,   
-          imageUrl2: item.fields.organizerIcon.fields.file.url,        
+          imageUrl2: item.fields.organizerIcon.fields.file.url,  
+          externalUrl: item.fields.externalUrl      
         })
       }>
       <View style={styles.postContainer}>

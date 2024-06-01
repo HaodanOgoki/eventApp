@@ -1,7 +1,9 @@
-import { View, Text, Image, StyleSheet, RefreshControl, SafeAreaView } from "react-native";
+import { View, Text, Image, StyleSheet, TouchableOpacity, RefreshControl, SafeAreaView } from "react-native";
 import React, { useState, useEffect } from "react";
 import { Agenda } from "react-native-calendars";
 import { createClient } from "contentful";
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+
 
 // Initialize Contentful client
 const Contentful = createClient({
@@ -27,7 +29,8 @@ function convertTo12Hour(timeString) {
   return `${hour12}:${minute} ${suffix}`;
 }
 
-export default function CalendarScreenAgenda() {
+const CalendarScreenAgenda = ({navigation}) =>{
+  const [data, setData] = useState([]);
   const [items, setItems] = useState({});
   const [refreshing, setRefreshing] = React.useState(false);
   const [isLoading, setIsLoading] = React.useState(true);
@@ -40,6 +43,18 @@ export default function CalendarScreenAgenda() {
   }, []);
 
   useEffect(() => {
+    // const fetchData = async () => {
+    //   try {
+    //     const response = await Contentful.getEntries({ content_type: 'featuredPosts' });
+    //     setData(response.items);
+    //     setIsLoading(false)
+    //   } catch (error) {
+    //     console.error('Error fetching data from Contentful:', error);
+    //   }
+    // };
+
+    // fetchData();
+  
     const fetchEvents = async () => {
       try {
         const response = await Contentful.getEntries({
@@ -58,6 +73,16 @@ export default function CalendarScreenAgenda() {
             time: extractTime(item.fields.dateTime),
             location: item.fields.location || "No Loaction",
             name: item.fields.title || "Unnamed Event",
+            title: item.fields.title,
+            favorite: item.fields.favorite,
+            description: item.fields.description,
+            category: item.fields.category,
+            organizer: item.fields.organizer,
+            imageUrl: item.fields.header.fields.file.url,   
+            dateTime: item.fields.dateTime,
+            map: item.fields.map,
+            price: item.fields.price,
+            imageUrl2: item.fields.organizerIcon.fields.file.url,  
           });
 
           return acc;
@@ -88,12 +113,31 @@ export default function CalendarScreenAgenda() {
   };
 
   const renderItem = (item) => {
+    
     return (
-      <View key={item.key} style={styles.itemContainer}>
-        <Text style={styles.itemTitle}>{item.name}</Text>
-        <Text style={styles.itemTime}>{item.time}</Text>
-        <Text style={styles.itemLocation}>{item.location}</Text>
-      </View>
+      <TouchableOpacity
+        style={styles.itemContainer}
+        onPress={() =>
+          navigation.navigate('FeaturedDetailScreen', {
+            title: item.title,
+            location: item.location,
+            favorite: item.favorite,
+            description: item.description,
+            category: item.category,
+            organizer: item.organizer,
+            imageUrl: item.imageUrl,   
+            dateTime: item.dateTime,
+            map: item.map,
+            price: item.price,
+            imageUrl2: item.imageUrl2,          
+          })
+        }>        
+        <View key={item.key} style={styles.itemContainer}>
+          <Text style={styles.itemTitle}>{item.name}</Text>
+          <Text style={styles.itemTime}>{item.time}</Text>
+          <Text style={styles.itemLocation}>{item.location}</Text>
+        </View>
+      </TouchableOpacity>
     );
   };
 
@@ -197,3 +241,5 @@ const styles = StyleSheet.create({
     color: "#888888",
   },
 });
+
+export default CalendarScreenAgenda;

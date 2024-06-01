@@ -1,18 +1,20 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { View, Text, TextInput, Image, StyleSheet, Button, RefreshControl, ScrollView, SafeAreaView, TouchableOpacity, Share, Modal } from 'react-native';
 import Clipboard from '@react-native-community/clipboard';
 import ShareSocial from 'react-share-social';
+import { WebView } from 'react-native-webview';
 import { getDatabase, ref, push, onValue } from "@firebase/database";
 import { FirebaseAuth } from '../components/firebaseConfig';
 
 const PostDetailScreen = ({ route, navigation }) => {
   console.log(route.params);
-  const { id, title, location, favorite, description, organizer, dateTime, map, imageUrl, imageUrl2 } = route.params;
+  const { id, title, description, organizer, imageUrl, imageUrl2, externalUrl } = route.params;
   const [refreshing, setRefreshing] = React.useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [shareUrl, setShareUrl] = useState(''); 
   const [userComment, setUserComment] = useState("");
   const [comments, setComments] = useState([]);
+  const videoRef = useRef(null);
 
   const onRefresh = React.useCallback(() => {
     setRefreshing(true);
@@ -111,6 +113,14 @@ const PostDetailScreen = ({ route, navigation }) => {
     setUserComment("");
   }
 
+  const onBuffer = ({ isBuffering }) => {
+    console.log(isBuffering ? 'Buffering...' : 'Buffering completed.');
+  };
+
+  const onError = (error) => {
+    console.log("Error when loading video: ", error);
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.buttonContainer}>
@@ -137,7 +147,26 @@ const PostDetailScreen = ({ route, navigation }) => {
           </View>
           <View style={styles.textContainer}>
             <Text style={styles.title}>{title}</Text>
-            <Text style={styles.description}>{description}</Text>           
+            <Text style={styles.description}>{description}</Text>                 
+          </View>
+          <View style={styles.videoContainer}>
+            {/* <Video 
+              source={{ uri: externalUrl }}
+              style={styles.videoContainer}
+              ref={videoRef}                                    
+              onBuffer={onBuffer}            
+              onError={onError}              
+            /> */}
+            <WebView
+              style={ styles.video }
+              javaScriptEnabled={true}
+              domStorageEnabled={true}
+              // allowFullScreen={false}
+              // allowsFullscreenVideo={ false }
+              source={{uri: externalUrl }}             
+              scalesPageToFit={true}
+              
+            />
           </View>
 
           {/* Comment input */}
@@ -154,22 +183,25 @@ const PostDetailScreen = ({ route, navigation }) => {
             </TouchableOpacity>
           </View>
 
-          {/* Show user comments */}
-          <View>
-            <Text style={styles.commentTitle}>Comments</Text>
-            {comments.map((comment, index) => (
-                <View style={styles.commentContainer} key={index}>
-                  <Image style={styles.organizerIcon} source={{ uri: `https:${ imageUrl2}`}} />
-                  {/* the imageurl need to be updated to the user profile picture */}
-                  <View style={styles.userCommentInfoContainer}>    
-                    <Text>User Name</Text>
-                    {/* <Text>By: {comment.userName}</Text> */}
-                    <Text style={styles.commentText}>{comment.text}</Text>                   
-                    
+          {/* Show user comments */}   
+          {
+          comments.length > 0 &&      
+            <View>
+              <Text style={styles.commentTitle}>Comments</Text>
+              {comments.map((comment, index) => (
+                  <View style={styles.commentContainer} key={index}>
+                    <Image style={styles.organizerIcon} source={{ uri: `https:${ imageUrl2}`}} />
+                    {/* the imageurl need to be updated to the user profile picture */}
+                    <View style={styles.userCommentInfoContainer}>    
+                      {/* <Text>User Name</Text> */}
+                      <Text style={styles.userNameText}>{comment.userName ? (comment.userName): "Anonymous"}</Text>
+                      <Text style={styles.commentText}>{comment.text}</Text>                   
+                      
+                    </View>
                   </View>
-                </View>
-            ))}
-          </View>
+              ))}
+            </View>
+          }
 
           {/* <Button title="Share" onPress={() => setModalVisible(true)} /> */}
           <Modal
@@ -282,6 +314,16 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#333',
   },
+  videoContainer: {
+    width: '95%',
+    marginHorizontal: 10,
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
+  video: {
+    flex: 1,
+    width:'100%'
+  },
   inputContainer: {
     alignItems: 'center'
   },
@@ -308,6 +350,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center'
   },
+  userNameText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#333',
+  },
   submitButtonText: {
     color: '#5683b0', 
     fontSize: 15,
@@ -329,7 +376,8 @@ const styles = StyleSheet.create({
   },
   commentText: {
     color: '#333',
-    fontSize: 16,
+    fontSize: 14,
+    marginTop: 5
   },
   modalContainer: {
     flex: 1,

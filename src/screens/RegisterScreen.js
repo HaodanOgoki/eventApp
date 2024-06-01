@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, Alert, Image, SafeAreaView } from 'react-native';
 import { getAuth, createUserWithEmailAndPassword } from "firebase/auth";
-import { getFirestore, doc, setDoc } from "firebase/firestore";
 import { FirebaseAuth } from "../components/firebaseConfig";
-import { getStorage, ref, uploadString, getDownloadURL } from "firebase/storage";
+import { collection, ref, getFirestore, doc, setDoc } from "firebase/firestore";
+import { getDatabase, onValue, push } from "@firebase/database";
 import * as ImagePicker from 'expo-image-picker';
 import { updateProfile } from "firebase/auth";
 
@@ -23,6 +23,7 @@ const RegisterScreen = ({ navigation }) => {
 
   const auth = FirebaseAuth;
 
+  // const db = getFirestore();
   const db = getFirestore();
 
   const handleRegister = async () => {
@@ -30,28 +31,12 @@ const RegisterScreen = ({ navigation }) => {
     try {
       const response = await createUserWithEmailAndPassword(auth, email, password);
       const user = response.user; // get the user data from the response
-      const userId = response.user.uid;
+      const userId = user.uid;
 
-      // await updateProfile(user, {
-      //   displayName: userName,
-      // });
-
-      // if(image) { // Check if there's an image to upload
-      //   const storage = getStorage();
-      //   const imageRef = ref(storage, 'user_images/' + userId);
-      //   await uploadString(imageRef, image, 'data_url');
-      //   imageUrl = await getDownloadURL(imageRef);
-      // }
-
-      // // Save the user data into the firebase
-      // await setDoc(doc(db, "users", response.user.uid), {
-      //   userName: userName,
-      //   email: email,
-      //   imageUrl: imageUrl
-      // });
-
-      // console.log("Username: ", userName);
-      // // console.log(response);
+      // Update profile with username 
+      if (userName) {
+        await updateProfile(user, { displayName: userName });
+      }
 
       alert('Please check your email.');
       navigation.navigate('TabAccount');
@@ -84,20 +69,23 @@ const RegisterScreen = ({ navigation }) => {
     }
   };
 
-  const pickImage = async() => {
-    const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
-
-    if (permissionResult.granted === false) {
-      alert("You are not permited to open the gallary.");
-      return;
+  const pickImage = async () => {
+    try {
+      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (status !== 'granted') {
+        alert('Sorry, we need camera roll permissions to choose an image.');
+        return;
+      }
+  
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        quality: 1,
+      });
+      handleImagePickerResponse(result);
+    } catch (error) {
+      console.error('Error picking image:', error);
+      alert('There was an error picking the image. Please try again.');
     }
-
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      quality: 1,
-    });
-
-    handleImagePickerResponse(result);
   };
 
   return (
@@ -140,8 +128,14 @@ const RegisterScreen = ({ navigation }) => {
               secureTextEntry={true}
           />
           <TouchableOpacity style={styles.uploadImageContainer} onPress={pickImage}>
-            <Image style={styles.imageIcon} source={require('../../assets/tabicon/image.png')} />
-            <Text style={styles.uploadImageText}>Upload Image</Text>
+            {image ? (
+              <Image source={{ uri: image }} style={styles.userImage} /> 
+            ) : (
+              <>
+                <Image style={styles.imageIcon} source={require('../../assets/tabicon/image.png')} />
+                <Text style={styles.uploadImageText}>Upload Image</Text>
+              </>
+            )}
           </TouchableOpacity>
           <View  style={styles.registerButtonContainer}>
             <TouchableOpacity style={styles.registerButtonStyle} onPress={handleRegister}>

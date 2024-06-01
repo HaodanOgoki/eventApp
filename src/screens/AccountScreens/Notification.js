@@ -59,7 +59,7 @@ const MainScreen = ({ navigation }) => {
         <TouchableOpacity
             style={styles.itemContainer}
             onPress={() =>
-                navigation.navigate('NotificationScreen', {
+                navigation.navigate('NotificationDetailScreen', {
                 title: item.fields.title,
                 content: item.fields.content,
                 imageUrl: item.fields.organizerImage.fields.file.url, 

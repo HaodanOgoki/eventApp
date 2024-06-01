@@ -41,7 +41,7 @@ const ChatRoomScreen = ({ navigation }) => {
     const db = getDatabase();
     const messagesRef = ref(db, "messages/");
     const user = FirebaseAuth.currentUser;
-    const userName = user ? (user.userName || "Anonymous"):"Anonymous";
+    const userName = user ? (user.displayName || "Anonymous"):"Anonymous";
 
     // Push a new message to Firebase
     push(messagesRef, {

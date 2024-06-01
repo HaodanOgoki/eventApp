@@ -18,6 +18,7 @@ const TabAccount = ({ navigation }) => {
       unsubscribe = onAuthStateChanged(FirebaseAuth, (user) => {
           console.log('user', user);
           setUser(user);
+          
       });
 
       return () => {
@@ -57,8 +58,8 @@ const TabAccount = ({ navigation }) => {
           <Text style={styles.email}>{user.email}</Text> */}
             <Image source={require('../../assets/blog_pics/ElonMusk.png')} style={styles.userImage}></Image>
             <View style={styles.userInfo}> 
-              <Text style={styles.userName}>User Name</Text>   
-              <Text style={styles.userEmail}>useremail@email.com</Text>
+              <Text style={styles.userName}>{user.displayName}</Text>   
+              <Text style={styles.userEmail}>{user.email}</Text>
             </View>      
         </View>
         <TouchableOpacity style={styles.sectionContainer}>
