@@ -16,7 +16,6 @@ import { getDatabase, ref, onValue, push } from "@firebase/database";
 // import { auth } from "../components/firebaseConfig";
 import { FirebaseAuth } from "../../components/firebaseConfig";
 
-
 const ChatRoomScreen = ({ navigation }) => {
   const [message, setMessage] = useState("");
   const [messages, setMessages] = useState([]);
@@ -41,7 +40,7 @@ const ChatRoomScreen = ({ navigation }) => {
     const db = getDatabase();
     const messagesRef = ref(db, "messages/");
     const user = FirebaseAuth.currentUser;
-    const userName = user ? (user.displayName || "Anonymous"):"Anonymous";
+    const userName = user ? user.displayName || "Anonymous" : "Anonymous";
 
     // Push a new message to Firebase
     push(messagesRef, {
@@ -49,7 +48,7 @@ const ChatRoomScreen = ({ navigation }) => {
       timestamp: Date.now(),
       userId: FirebaseAuth.currentUser.uid,
       userName: userName,
-    //   userName: "Anonymous"
+      //   userName: "Anonymous"
     });
     setMessage("");
   };
@@ -66,71 +65,79 @@ const ChatRoomScreen = ({ navigation }) => {
 
   return (
     <SafeAreaView style={styles.safeView}>
-        <View style={styles.buttonContainer}>
-            <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-            <Image style={styles.backIcon} source={require('../../../assets/tabicon/back.png')}/>
-            <Text style={styles.backButtonText}>Back</Text>
-            </TouchableOpacity>
-        </View>
-        <KeyboardAvoidingView
-            style={styles.container}
-            behavior={Platform.OS === "ios" ? "padding" : "height"}
-            keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}
+      <View style={styles.buttonContainer}>
+        <TouchableOpacity
+          style={styles.backButton}
+          onPress={() => navigation.goBack()}
         >
-            <FlatList
-            data={messages}
-            keyExtractor={(item) => item.id}
-            renderItem={({ item }) => (
-                <View
+          <Image
+            style={styles.backIcon}
+            source={require("../../../assets/tabicon/back.png")}
+          />
+          <Text style={styles.backButtonText}>Back</Text>
+        </TouchableOpacity>
+      </View>
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+      >
+        <FlatList
+          data={messages}
+          keyExtractor={(item) => item.id}
+          renderItem={({ item }) => (
+            <View
+              style={[
+                styles.messageBubble,
+                item.userId == FirebaseAuth.currentUser.uid
+                  ? styles.myMessage
+                  : styles.otherMessage,
+              ]}
+            >
+              <Text
                 style={[
-                    styles.messageBubble,
-                    item.userId == FirebaseAuth.currentUser.uid
-                    ? styles.myMessage
-                    : styles.otherMessage,
+                  styles.userName,
+                  item.userId === FirebaseAuth.currentUser.uid
+                    ? styles.myName
+                    : styles.userName,
                 ]}
-                >
-                <Text
-                    style={[
-                    styles.userName,
-                    item.userId === FirebaseAuth.currentUser.uid
-                        ? styles.myName
-                        : styles.userName,
-                    ]}
-                >
-                    {item.userName}
-                </Text>
-                <Text
-                    style={[
-                    styles.messageText,
-                    item.userId === FirebaseAuth.currentUser.uid
-                        ? styles.myMsgText
-                        : styles.messageText,
-                    ]}
-                >
-                    {item.text}
-                </Text>
-                <Text style={styles.messageTime}>
-                    {formatDate(item.timestamp)}
-                </Text>
-                </View>
-            )}
-            inverted
-            />
-            <View style={styles.messageBox}>
-            <TextInput
-                style={styles.input}
-                value={message}
-                onChangeText={setMessage}
-                placeholder="Type a message"
-            />
-            <TouchableOpacity style={styles.sendBtn} onPress={handleSend}>
-                <Image style={styles.sendIcon} source={require('../../../assets/tabicon/send.png')} />
-            </TouchableOpacity>
+              >
+                {item.userName}
+              </Text>
+              <Text
+                style={[
+                  styles.messageText,
+                  item.userId === FirebaseAuth.currentUser.uid
+                    ? styles.myMsgText
+                    : styles.messageText,
+                ]}
+              >
+                {item.text}
+              </Text>
+              <Text style={styles.messageTime}>
+                {formatDate(item.timestamp)}
+              </Text>
             </View>
-        </KeyboardAvoidingView>
+          )}
+          inverted
+        />
+        <View style={styles.messageBox}>
+          <TextInput
+            style={styles.input}
+            value={message}
+            onChangeText={setMessage}
+            placeholder="Type a message"
+          />
+          <TouchableOpacity style={styles.sendBtn} onPress={handleSend}>
+            <Image
+              style={styles.sendIcon}
+              source={require("../../../assets/tabicon/send.png")}
+            />
+          </TouchableOpacity>
+        </View>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
-}
+};
 
 const styles = StyleSheet.create({
   safeView: {
@@ -158,15 +165,15 @@ const styles = StyleSheet.create({
   sendBtn: {
     justifyContent: "center",
     alignItems: "center",
-    borderColor: '#cccccc',
+    borderColor: "#cccccc",
     borderRadius: 15,
     borderWidth: 1,
     paddingHorizontal: 15,
-    marginRight: -10
+    marginRight: -10,
   },
   sendIcon: {
     width: 25,
-    height: 25
+    height: 25,
   },
   messageBubble: {
     padding: 10,
@@ -199,23 +206,23 @@ const styles = StyleSheet.create({
     textAlign: "right",
   },
   buttonContainer: {
-    justifyContent: 'center'
+    justifyContent: "center",
   },
   backButton: {
-    flexDirection: 'row',
+    flexDirection: "row",
     paddingVertical: 8,
     paddingHorizontal: 16,
-    alignItems: 'center',
-    width: '30%',
+    alignItems: "center",
+    width: "30%",
   },
   backIcon: {
     height: 15,
     width: 15,
-    marginRight: 10
+    marginRight: 10,
   },
   backButtonText: {
     fontSize: 16,
-    color: '#333',
+    color: "#333",
   },
 });
 
